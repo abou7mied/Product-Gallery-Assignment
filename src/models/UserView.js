@@ -13,4 +13,12 @@ schema.index({
   userId: 1
 })
 
+schema.index({
+  userId: 1
+})
+
+schema.index({
+  viewDate: 1
+})
+
 module.exports = model('UserView', schema)
