@@ -16,7 +16,7 @@ It has million of documents in a collection name - userView and it gets populate
 - [x] Create data access layer
 - [x] Build Queries for finding total users and total unique users who viewed a product
 - [x] Create endpoints/controllers
-- [ ] Create script to populate the database with a million of documents
+- [x] Create script to populate the database with 1M+ of documents
 
 
 ## Get started
@@ -41,6 +41,14 @@ Endpoint for finding total users who viewed a product
 Endpoint for finding unique users who viewed a product
 `http://localhost:3000/api/v1/product/:productId/unique-views`
 
+Query filters for both endpoints: 
+
+| Param      | Description                                            |   |   |   |
+|------------|--------------------------------------------------------|---|---|---|
+| start_date | Timestamp/Date to get aggregate views from INCLUSIVE.  |   |   |   |
+| end_date   | Timestamp/Date to get aggregate views until INCLUSIVE. |   |   |   |
+| group_by   | Group by "day"/"week"/"month"/"year"                   |   |   |   |
+
 The structure of the response:
 ```json
 [
@@ -50,3 +58,26 @@ The structure of the response:
   }
 ]
 ``` 
+
+## Queries performance
+You can run
+```
+npm run populate-db
+```
+This script will populate the DB with about 1.8M+ for static 10 products 
+```json
+[
+  "5fb79eb0357779493c3afe1d",
+  "5fb79eb0357779493c3afe1e",
+  "5fb79eb0357779493c3afe1f",
+  "5fb79eb0357779493c3afe20",
+  "5fb79eb0357779493c3afe21",
+  "5fb79eb0357779493c3afe22",
+  "5fb79eb0357779493c3afe23",
+  "5fb79eb0357779493c3afe24",
+  "5fb79eb0357779493c3afe25",
+  "5fb79eb0357779493c3afe26"
+]
+```
+
+after then, you can use one of the above ids to test the endpoints 
