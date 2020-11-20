@@ -10,21 +10,20 @@ class UserViewDAL {
       productId: mongoose.Types.ObjectId(productId)
     }
     if (dateFilter.startDate || dateFilter.endDate) {
-      $match.$viewDate = {}
+      $match.viewDate = {}
     }
     if (dateFilter.startDate) {
-      $match.$viewDate.$gte = dateFilter.startDate
+      $match.viewDate.$gte = new Date(dateFilter.startDate)
     }
     if (dateFilter.endDate) {
-      $match.$viewDate.$lte = dateFilter.endDate
+      $match.viewDate.$lte = new Date(dateFilter.endDate)
     }
-
     let dateToGroupByProjection = '$date'
+    let dateFormat = "%Y-%m-%d"
     if (['day', 'month', 'week', 'year'].includes(groupBy)) {
-      let dateFormat = "%Y-%m-%d"
       switch (groupBy) {
         case 'week':
-          dateFormat = "%Y-%U"
+          dateFormat = "%Y W%U"
           break
         case 'month':
           dateFormat = "%Y-%m"
@@ -48,44 +47,62 @@ class UserViewDAL {
         $project: {
           date: {
             $dateToString: {
-              format: "%Y-%m-%d",
+              format: dateFormat,
               date: "$viewDate"
             }
           },
           group: dateToGroupByProjection,
-          userId: '$userId'
+          userId: '$userId',
+          viewDate: '$viewDate',
         }
       },
     ]
 
-    if (unique) {
+    const groupProjects = {
+      date: {
+        $last: '$date'
+      },
+      group: {
+        $last: '$group'
+      },
+      viewDate: {
+        $last: '$viewDate'
+      },
+      userId: {
+        $last: '$userId'
+      },
+      views: {
+        $sum: 1
+      }
+    }
+
+    if (!unique) {
       pipeline.push({
         $group: {
-          _id: '$userId',
-          date: {
-            $last: '$date'
+          _id: '$group',
+          ...groupProjects
+        }
+      })
+    } else {
+      pipeline.push({
+        $group: {
+          _id: {
+            group: '$group',
+            userId: '$userId',
           },
-          group: {
-            $last: '$group'
-          },
-          views: {
-            $sum: 1
-          }
+          ...groupProjects,
+        }
+      })
+      pipeline.push({
+        $group: {
+          _id: '$group',
+          ...groupProjects,
         }
       })
     }
     pipeline.push({
-      $group: {
-        _id: '$group',
-        date: {
-          $last: '$date'
-        },
-        group: {
-          $last: '$group'
-        },
-        views: {
-          $sum: 1
-        }
+      $sort: {
+        viewDate: -1,
       }
     })
     pipeline.push({
